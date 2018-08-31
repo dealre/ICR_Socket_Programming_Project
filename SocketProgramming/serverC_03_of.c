@@ -70,10 +70,6 @@ int main(int argc, char *argv[]) {
 			n = read(newsockfd, buffer, 256);
 			if(n < 0){ error("ERROR - Reading data failed"); }
 			
-    			do {
-        			c = getchar();
-    			} while (c != '\n' && c != EOF);
-			
 			printf("Client: %s\n", buffer);
 			bzero(buffer, 256);	
 		}

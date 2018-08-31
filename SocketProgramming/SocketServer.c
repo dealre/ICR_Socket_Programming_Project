@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 	if(forknum < 0){ error("ERROR - Fork creation failed"); }
 	
 	if(forknum != 0){ // parent
-		printf("parent here\n"); /////////////////////////////remove later	
+		//printf("parent here\n"); /////////////////////////////remove later	
 		while(1){
 			bzero(buffer, 256);
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	if(forknum == 0){ // child
-		printf("child here\n"); ////////////////////////remove later
+		//printf("child here\n"); ////////////////////////remove later
 		while(1){
 			bzero(child_buffer, 256);
 			fgets(child_buffer, 256, stdin);
