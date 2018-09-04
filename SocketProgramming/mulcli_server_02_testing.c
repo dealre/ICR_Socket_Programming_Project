@@ -33,13 +33,13 @@ typedef struct{
 	int online;
 }client_user;
 
-client_user *clients[MAX_CLIENTS];
+client_user clients[MAX_CLIENTS];
 
 void queue_add(client_user *cl){
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(!clients[i]){
-			clients[i] = cl;
+		if(clients[i].online != 1){
+			clients[i] = *cl;
 			return;
 		}
 	}
@@ -48,9 +48,9 @@ void queue_add(client_user *cl){
 void queue_delete(int user_id){
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(clients[i]){
-			if(clients[i]->user_id == user_id){
-				clients[i] = NULL;
+		if(clients[i].online == 1){
+			if(clients[i].user_id == user_id){
+				clients[i].online = 0;
 				return;
 			}
 		}
@@ -61,10 +61,10 @@ void send_message(char *s, int user_id){
 	printf("location: 2\n");
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(clients[i]){
-			if(clients[i]->user_id != user_id){
+		if(clients[i].online == 1){
+			if(clients[i].user_id != user_id){
 				printf("location: 5\n");
-				write(clients[i]->new_sock, s, strlen(s));
+				write(clients[i].new_sock, s, strlen(s));
 				printf("location: 6\n");
 			}
 		}
@@ -76,9 +76,9 @@ void send_message_all(char *s){
 	printf("location: all 2\n");
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(clients[i]){
+		if(clients[i].online == 1){
 			printf("location: all 5\n");
-			write(clients[i]->new_sock, s, strlen(s));
+			write(clients[i].new_sock, s, strlen(s));
 			printf("location: all 6\n");
 		}
 	}
@@ -180,6 +180,8 @@ int main(int argc, char *argv[]) {
 		client->user_id = user_id++;
 		client->online = 1;
 		printf("New connection: %d \n",client->user_id);
+		
+		queue_add(client);
 		pthread_create(&tid, NULL, &client_handler, (void*)client);
 		
 	}

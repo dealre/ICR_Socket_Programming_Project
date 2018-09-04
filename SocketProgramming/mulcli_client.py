@@ -16,20 +16,16 @@ def error(str):
 
 def output_f():
     while True:
-        message = input()
-        if message == 'q':
-            break
+        message = input('User: ')
         sock.send(message.encode())
     return
 
 
 def input_f():
     while True:
-        receive = sock.recv(256)
-        response = receive.decode()
+        recieve = sock.recv(256)
+        response = recieve.decode()
         print(response)
-        if message == 'q':
-            break
     return
 
 
@@ -50,9 +46,6 @@ threadin.daemon = True
 threadout.start()
 threadin.start()
 
-while True:
-    if message == 'q':
-        break
 
 sock.close()
 sys.exit(0)

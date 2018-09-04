@@ -16,7 +16,7 @@
 #include <netdb.h>
 
 #define MAX_CLIENTS 4
-#define MSG_SIZE 1024
+#define MSG_SIZE 256
 
 static unsigned int client_count = 0;
 static int user_id = 0;
@@ -33,13 +33,13 @@ typedef struct{
 	int online;
 }client_user;
 
-client_user *clients[MAX_CLIENTS];
+client_user clients[MAX_CLIENTS];
 
 void queue_add(client_user *cl){
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(!clients[i]){
-			clients[i] = cl;
+		if(clients[i].online != 1){
+			clients[i] = *cl;
 			return;
 		}
 	}
@@ -48,9 +48,9 @@ void queue_add(client_user *cl){
 void queue_delete(int user_id){
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(clients[i]){
-			if(clients[i]->user_id == user_id){
-				clients[i] = NULL;
+		if(clients[i].online == 1){
+			if(clients[i].user_id == user_id){
+				clients[i].online = 0;
 				return;
 			}
 		}
@@ -58,36 +58,28 @@ void queue_delete(int user_id){
 }
 
 void send_message(char *s, int user_id){
-	printf("location: 2\n");
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(clients[i]){
-			if(clients[i]->user_id != user_id){
-				printf("location: 5\n");
-				write(clients[i]->new_sock, s, strlen(s));
-				printf("location: 6\n");
+		if(clients[i].online == 1){
+			if(clients[i].user_id != user_id){
+				write(clients[i].new_sock, s, strlen(s));
 			}
 		}
 	}
-	printf("location: 7\n");
 }
 
 void send_message_all(char *s){
-	printf("location: all 2\n");
 	int i;
 	for(i=0;i<MAX_CLIENTS;i++){
-		if(clients[i]){
-			printf("location: all 5\n");
-			write(clients[i]->new_sock, s, strlen(s));
-			printf("location: all 6\n");
+		if(clients[i].online == 1){
+			write(clients[i].new_sock, s, strlen(s));
 		}
 	}
-	printf("location: all 7\n");
 }
 
 void *client_handler(void *arg){
-	char buffer_output[256];
-	char buffer_input[256];
+	char buffer_output[MSG_SIZE];
+	char buffer_input[MSG_SIZE];
 	int reader;
 	
 	client_count++;
@@ -101,10 +93,8 @@ void *client_handler(void *arg){
 		buffer_output[0] = '\0';
 		
 		printf("%i: %s\n",client->user_id, buffer_input);
-		sprintf(buffer_output,"%i: %s\n",client->user_id, buffer_input);
-		printf("location: 1\n");
+		sprintf(buffer_output,"%i: %s",client->user_id, buffer_input);
 		send_message(buffer_output, client->user_id);
-		printf("location: 8\n");
 	}
 	close(client->new_sock);		
 	queue_delete(client->user_id);
@@ -119,8 +109,7 @@ void *client_handler(void *arg){
 	pthread_detach(pthread_self());
 	return 0;
 }
-	
-	
+		
 int main(int argc, char *argv[]) {
 	
 	// initial argument check
@@ -136,7 +125,6 @@ int main(int argc, char *argv[]) {
 	int new_sock = 0;
 	struct sockaddr_in server_address;
 	struct sockaddr_in client_address;
-	char buffer[1024];
 	pthread_t tid;
 	int port = atoi(argv[1]);
 	
@@ -180,24 +168,10 @@ int main(int argc, char *argv[]) {
 		client->user_id = user_id++;
 		client->online = 1;
 		printf("New connection: %d \n",client->user_id);
+		
+		queue_add(client);
 		pthread_create(&tid, NULL, &client_handler, (void*)client);
 		
 	}
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

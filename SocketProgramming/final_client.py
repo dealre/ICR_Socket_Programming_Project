@@ -27,7 +27,7 @@ def input_f():
     while True:
         receive = sock.recv(256)
         response = receive.decode()
-        print(response)
+        print(response)  # "\x1b[2K" + "\r" +
         if message == 'q':
             break
     return
